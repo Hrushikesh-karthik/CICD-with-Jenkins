@@ -21,3 +21,30 @@ Give Jenkins access to the host's Docker socket and install the Docker CLI insid
 Simpler, but Jenkins effectively gains powerful control over the host. I don't recommend this for the security-conscious project we're building.
 
 Let's use Option A
+Step 2.3 — Download the Docker-in-Docker image
+Run this in your WSL Ubuntu terminal:
+docker pull docker:dind
+
+Step 2.4 — Start the dedicated Docker daemon
+We'll start a separate Docker daemon container on devsecops-net. It will create temporary containers for our pipeline, while Jenkins remains our controller.
+Run:
+docker run -d \
+  --name devsecops-docker \
+  --privileged \
+  --network devsecops-net \
+  --network-alias docker \
+  -e DOCKER_TLS_CERTDIR="" \
+  docker:dind \
+  --host=tcp://0.0.0.0:2375 \
+  --host=unix:///var/run/docker.sock
+
+
+Important security note: Docker-in-Docker typically requires --privileged. Port 2375 is unencrypted and unauthenticated, so we're deliberately not publishing it to the host. Only containers with network access to this daemon should be trusted. This is a practical local-lab setup, not production-grade isolation.
+
+Step 2.5 — Test communication with the Docker daemon
+Before modifying Jenkins, let's verify that another container can communicate with the daemon over our private network.
+Run:
+docker run --rm \
+  --network devsecops-net \
+  -e DOCKER_HOST=tcp://docker:2375 \
+  docker:cli version
