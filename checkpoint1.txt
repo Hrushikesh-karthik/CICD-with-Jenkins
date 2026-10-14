@@ -1,0 +1,26 @@
+Project directories
+Created `~/devsecops-project/` with `jenkins-agent/`, `flask-app/` and `gitops/` directories. We later created `jenkins-controller/` for the custom image.
+
+
+Docker network
+Created `devsecops-net` and verified the existing Jenkins container is connected.
+
+
+Existing Jenkins
+Confirmed `jenkins/jenkins:lts-jdk21` is running on port 8080, with port 50000 also published.
+
+
+Persistent configuration
+Verified Jenkins uses the named `jenkins_home` volume at `/var/jenkins_home` and has restart policy `unless-stopped`.
+
+
+Docker-in-Docker image
+Downloaded and verified `docker:dind`.
+
+
+Dedicated Docker daemon
+Started `devsecops-docker` with `--privileged`, connected it to `devsecops-net`, and assigned network alias `docker`.
+
+
+Connectivity test
+Successfully ran `docker:cli version` in a temporary container using `DOCKER_HOST=tcp://docker:2375`. Both client and server responded.
