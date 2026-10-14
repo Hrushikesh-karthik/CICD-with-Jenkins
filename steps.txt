@@ -1,0 +1,23 @@
+Create docker network:
+docker network inspect devsecops-net >/dev/null 2>&1 \
+  || docker network create devsecops-net
+Connect existing jenkins controller to network:
+docker network connect devsecops-net jenkins
+Check whether connected or not:
+docker network inspect devsecops-net \
+  --format '{{range .Containers}}{{println .Name}}{{end}}'
+
+
+Step 2.2 — Choose how Jenkins creates temporary containers
+To implement your agentless design, Jenkins needs a way to ask Docker to create and remove containers.
+We have two main options:
+Option A — Separate Docker daemon
+[Recommended for our lab]
+Run a dedicated Docker daemon in another container. Jenkins uses a Docker client to communicate with it over the private Docker network.
+Advantages: avoids giving Jenkins direct access to the host Docker socket. Trade-off: Docker-in-Docker typically needs privileged mode, so it is not a production security boundary.
+
+Option B — Host Docker daemon
+Give Jenkins access to the host's Docker socket and install the Docker CLI inside Jenkins.
+Simpler, but Jenkins effectively gains powerful control over the host. I don't recommend this for the security-conscious project we're building.
+
+Let's use Option A
