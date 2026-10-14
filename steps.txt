@@ -48,3 +48,34 @@ docker run --rm \
   --network devsecops-net \
   -e DOCKER_HOST=tcp://docker:2375 \
   docker:cli version
+Step 2.6 — Build a custom Jenkins image
+Instead of installing a full Docker Engine inside Jenkins, we'll copy just the Docker CLI from the official Docker CLI image. This keeps our controller image simpler.
+
+1. Create the Dockerfile
+Run these commands in WSL Ubuntu:
+cd ~/devsecops-project
+
+mkdir -p jenkins-controller
+
+cd jenkins-controller
+
+cat > Dockerfile <<'EOF'
+FROM docker:cli AS docker-cli
+
+FROM jenkins/jenkins:lts-jdk21
+
+USER root
+
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+
+USER jenkins
+EOF
+
+2. Build the image
+docker build -t local/jenkins-docker-cli:1.0 .
+
+3. Verify the image
+docker run --rm \
+  --entrypoint docker \
+  local/jenkins-docker-cli:1.0 \
+  --version
